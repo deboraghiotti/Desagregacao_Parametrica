@@ -441,3 +441,13 @@ desag_param<-function(info, ano, Zinicial){
   return(Meses)
 }
 
+desnormalizar <- function(serie,serie_normalizada){
+  media = apply(log(serie),2,mean)
+  for(i in 1:nrow(serie)){
+    serie_normalizada[i,] = serie_normalizada[i,] + media
+  }
+  
+  serie_normalizada = exp(serie_normalizada)
+  
+  return(serie_normalizada)
+}
