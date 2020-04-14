@@ -14,7 +14,10 @@ div_mensais<-function(sH)
   return(serie_hist)
 }
 
-desag_param_info<-function(){
+# Funcao desag_param_info: calcula dos parametros historicos necessarios para a desagregacao parametrica
+# Parametro: a serie historica normalizada 
+# Retorno: parametros historicos para a desagregacao
+desag_param_info<-function(SeriesDadosHist_normalizada){
   Info=list()
   for (i in 1:11){
     if (i==1)
@@ -172,6 +175,10 @@ parametro_Bt <- function(ACF_S,A,C){
   return(Bt)
 }
 
+# Funcao desagregacao_parametrica: realiza a desagregacao de um ano, gerando 12 valores mensais
+# Parametros: a vazao anual(ano), o zInicial, A(calculado com a funcao parametro_A),Bt(calculado com a funcao parametro_Bt)e C(calculado com a funcao parametro_C)
+# Retorno: o ano desagregado
+# OBS: Essa é a funcao desag_param modificada
 
 desagregacao_parametrica <- function(ano,Zinicial,A,Bt,C){
   Meses = 0
@@ -209,10 +216,13 @@ desagregacao_parametrica <- function(ano,Zinicial,A,Bt,C){
 # Primeiro: retirar o input_3 OK
 # Segundo: permitir que o ano da serie sintetica seja diferente de 10000
 
-#Funcao de desagregacao modificada com o calculo de A, Bt, C feitos fora da funcao desagregacao_parametrica
+# Funcao de desagregacao_parametrica_mult : Realiaza a desagregacao da serie_sintetica
+# Pametro: o parametro historico calculado pela funcao desag_param_info
+# Retorno: a serie desagregada
+# OBS: Essa é a funcao desag_param -mult modificada com o calculo de A, Bt, C feitos fora da funcao desag_param
+
 desagregacao_parametrica_mult <- function(info){
   aux = (serie_sintetica_normalizada)
-  #OBS: input_3 sempre igual a 1
   #OBS: nem sempre serao 10000, é preciso alterar isso
   Desagregado = list()
   CONT_ERRO <<- 0
@@ -229,7 +239,7 @@ desagregacao_parametrica_mult <- function(info){
     ERRO[[i]] <<- aux1[, i]
   }
     
-    ################MUDAR PARA OS ANOS FINAIS AO INVES DOS ANOS INICIAIS###########
+  ################MUDAR PARA OS ANOS FINAIS AO INVES DOS ANOS INICIAIS###########
   df_serie_desagregada_param = data.frame(matrix(NA, nrow = 10000, ncol = 12))
   cont = 1
   inicio = 1
@@ -237,13 +247,16 @@ desagregacao_parametrica_mult <- function(info){
     
   #Calculo dos Parametros A, Bt e C
   ACF_S = autocovariancia(info)
-  print('Calculo do parametro A')
+  
   A = parametro_A(ACF_S)
-  print('Calculo do paramtro C')
+  print('Calculo do parametro A')
+  
   C = parametro_C(ACF_S,A)
-  print('Calculo do parametro Bt')
+  print('Calculo do paramtro C')
+  
   Bt = parametro_Bt(ACF_S,A,C)
-    
+  print('Calculo do parametro Bt')
+  
   #Zinicial = a vazão de dezembro do ano 1 da serie historica normalizada
   Zinicial = SeriesDadosHist_normalizada[1,12]
     
@@ -251,14 +264,16 @@ desagregacao_parametrica_mult <- function(info){
   # OBS: cont possui o mesmo valor de i no loop
   for(i in inicio:fim){
       
-    # A função desag_param retorna uma lista(ou vetor) de 12 elementos. Essa lista será o valor da serie desagregada do ano i.
+    # A função desagregacao_parametrica retorna uma lista(ou vetor) de 12 elementos. Essa lista será o valor da serie desagregada do ano i.
     # info = os parametros calculados na funcao desag_param_info
     # aux[i,1] = é o valor da vazao da serie sintetica no ano i
+    
     print(paste('Desagregacao do valor',i))
     df_serie_desagregada_param[cont,] = desagregacao_parametrica(aux[i,1], Zinicial,A,Bt,C)
       
     #Zinicial é o valor da vazao calculada pela desagregacao do mes de dezembro. Esse valor será utilizado na desagregacao do ano  i + 1
     #Definicao de Z do artigo: contem a ultima temporada do ano anterior. Esse valor só não segue essa formula para o i = 1 
+    
     Zinicial = df_serie_desagregada_param[cont,12]
       
     # O valor de cont é incrementado
@@ -423,3 +438,4 @@ desag_param<-function(info, ano, Zinicial){
   #print(sum(Meses))
   return(Meses)
 }
+

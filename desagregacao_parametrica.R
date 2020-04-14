@@ -5,24 +5,28 @@ require(gridExtra)
 require(knitr)
 require(tcltk)
 source('funcoes.R')
-#source('C:\Users\debor\Desktop\IC-2019-2020\Desagregacao\Desagregacao_Parametrica\Funcoes_abr2020.R')
 
 input_1 <- tk_choose.files()#Arquivo de serie historica
 input_2 <- tk_choose.files()#Arquivo de vazao sintetica
-input_3 = scan(what = integer(), nmax = 1)
 
 entrada <- data.frame(read.csv(input_1, sep=";", dec=",")) #Leitura de dados historicos mensais
 serie_sintetica <- data.frame(read.csv(input_2, header = F,sep=";", dec=",")) #Leitura de serie sintetica gerada para essa mesma serie
+
+media_serie_sintetica = apply(serie_sintetica,2,mean)
 serie_sintetica_normalizada <- apply(log(serie_sintetica), 2, function(x) (x-mean(x)))
 
 SeriesDadosHist <- div_mensais(entrada)
 SeriesDadosHist_normalizada <- apply(log(SeriesDadosHist),2, function(x) (x-mean(x)))
 
-Parametro_Hist <- desag_param_info()
-#ParametroP_Hist <- desag_param_info_padronizado()
+Parametro_Hist <- desag_param_info(SeriesDadosHist_normalizada)
 
-#DesagregadoP = desag_param_mult(Parametro_Hist)
+# A Funcao desagregacao_parametrica_mult substitui a funcao desag_param_mult
+# Nela, os parametros A, B, C são calculados externamente a funcao desag_param.
+# A funcao parametro_A calcula o parametro A
+# A funcao parametro_Bt calcula o parametro B
+# A funcao parametro_C calcula o parametro C
+# a funcao autocovariancia calcula a autocovariancia do Parametro_Hist que é necessario para calcular os parametros A.B e C
+
 DesagregadoP <- desagregacao_parametrica_mult(Parametro_Hist)
-for(i in 1:input_3){
-  DesagregadoP[[i]] <- abs(DesagregadoP[[i]])
-}
+
+
