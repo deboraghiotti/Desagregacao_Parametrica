@@ -217,17 +217,19 @@ desagregacao_parametrica <- function(ano,Zinicial,A,Bt,C){
 # Segundo: permitir que o ano da serie sintetica seja diferente de 10000
 
 # Funcao de desagregacao_parametrica_mult : Realiaza a desagregacao da serie_sintetica
-# Pametro: o parametro historico calculado pela funcao desag_param_info
+# Pametro: a serie sintetica normalizada, o parametro historico calculado pela funcao desag_param_info
 # Retorno: a serie desagregada
 # OBS: Essa é a funcao desag_param -mult modificada com o calculo de A, Bt, C feitos fora da funcao desag_param
 
-desagregacao_parametrica_mult <- function(info){
+desagregacao_parametrica_mult <- function(serie_sintetica_normalizada,info){
   aux = (serie_sintetica_normalizada)
+  #nAnos: numero de anos da serie_sintetica
+  nAnos = nrow(serie_sintetica_normalizada)
   #OBS: nem sempre serao 10000, é preciso alterar isso
   Desagregado = list()
   CONT_ERRO <<- 0
   # ERRO_AUX : Funcao rnorm ira gerar 20000 valores aleatorios de media zero e variancia igual a 1 
-  ERRO_AUX = rnorm (10000*2, 0, 1)
+  ERRO_AUX = rnorm (nAnos*2, 0, 1)
   # Normalizando o ERRO_AUX
   ERRO_AUX = (ERRO_AUX - mean (ERRO_AUX)) / sd (ERRO_AUX)
   # aux1: matriz com duas linhas e 10000 colunas, contendo os valores de ERRO_AUX.
@@ -235,15 +237,15 @@ desagregacao_parametrica_mult <- function(info){
     
   #Criando uma lista de 10000 elementos, onde cada elemento possu dois valores aleatorios
   ERRO <<- list()
-  for(i in 1:10000) {
+  for(i in 1:nAnos) {
     ERRO[[i]] <<- aux1[, i]
   }
     
   ################MUDAR PARA OS ANOS FINAIS AO INVES DOS ANOS INICIAIS###########
-  df_serie_desagregada_param = data.frame(matrix(NA, nrow = 10000, ncol = 12))
+  df_serie_desagregada_param = data.frame(matrix(NA, nrow = nAnos, ncol = 12))
   cont = 1
   inicio = 1
-  fim = 10000
+  fim = nAnos
     
   #Calculo dos Parametros A, Bt e C
   ACF_S = autocovariancia(info)
