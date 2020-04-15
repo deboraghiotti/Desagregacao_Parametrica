@@ -272,7 +272,10 @@ desagregacao_parametrica_mult <- function(serie_sintetica_normalizada,info){
     
     print(paste('Desagregacao do valor',i))
     df_serie_desagregada_param[cont,] = desagregacao_parametrica(aux[i,1], Zinicial,A,Bt,C)
-      
+    
+    # Realizando o ajuste mensal para preservar a aditividade
+    df_serie_desagregada_param[cont,] = ajuste_proporcional(aux[i,1],df_serie_desagregada_param[cont,])
+    
     #Zinicial é o valor da vazao calculada pela desagregacao do mes de dezembro. Esse valor será utilizado na desagregacao do ano  i + 1
     #Definicao de Z do artigo: contem a ultima temporada do ano anterior. Esse valor só não segue essa formula para o i = 1 
     
@@ -450,4 +453,13 @@ desnormalizar <- function(serie,serie_normalizada){
   serie_normalizada = exp(serie_normalizada)
   
   return(serie_normalizada)
+}
+
+# anual: vazao anual sintetica
+# mensal: vetor mensal desagregado da vazao anual sintetica (vetor de 12 valores)
+ajuste_proporcional <- function(anual,mensal){
+  
+  soma_mensal = sum(mensal)
+  return(sapply(mensal,function(x)(x*anual/soma_mensal)))
+  
 }

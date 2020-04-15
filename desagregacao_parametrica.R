@@ -28,6 +28,10 @@ Parametro_Hist <- desag_param_info(SeriesDadosHist_normalizada)
 # a funcao autocovariancia calcula a autocovariancia do Parametro_Hist que é necessario para calcular os parametros A.B e C
 
 DesagregadoP <- desagregacao_parametrica_mult(serie_sintetica_normalizada,Parametro_Hist)
-DesagregadoP_desnormalizado = desnormalizar(serie_sintetica,DesagregadoP)
+# mediaSS = apply(log(serie_sintetica),2,mean)
+# Desagregado = apply(DesagregadoP,1,function(x)(x + mediaSS))
+# Desagregado = t(exp(Desagregado))
+
+#DesagregadoP_desnormalizado = desnormalizar(serie_sintetica,DesagregadoP)
 
 
