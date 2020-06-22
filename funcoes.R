@@ -17,15 +17,15 @@ div_mensais<-function(sH)
 # Funcao parametros_historicos: calcula dos parametros historicos necessarios para a desagregacao parametrica
 # Parametro: a serie historica normalizada 
 # Retorno: parametros historicos para a desagregacao
-parametros_historicos<-function(SeriesDadosHist_normalizada){
+parametros_historicos<-function(serie_historica_normalizada){
   Info=list()
   for (i in 1:11){
     if (i==1)
-      Info[[i]] = cbind(SeriesDadosHist_normalizada[,i],SeriesDadosHist_normalizada[,12],apply(SeriesDadosHist_normalizada[,-1],1,sum),apply(SeriesDadosHist_normalizada,1,sum))
+      Info[[i]] = cbind(serie_historica_normalizada[,i],serie_historica_normalizada[,12],apply(serie_historica_normalizada[,-1],1,sum),apply(serie_historica_normalizada,1,sum))
     else if(i<11)
-      Info[[i]] = cbind(SeriesDadosHist_normalizada[,i],SeriesDadosHist_normalizada[,i-1],apply(SeriesDadosHist_normalizada[,((i+1):12)],1,sum),apply(SeriesDadosHist_normalizada[,(i:12)],1,sum))
+      Info[[i]] = cbind(serie_historica_normalizada[,i],serie_historica_normalizada[,i-1],apply(serie_historica_normalizada[,((i+1):12)],1,sum),apply(serie_historica_normalizada[,(i:12)],1,sum))
     else
-      Info[[i]] = cbind(SeriesDadosHist_normalizada[,i],SeriesDadosHist_normalizada[,i-1],SeriesDadosHist_normalizada[,12],apply(SeriesDadosHist_normalizada[,(i:12)],1,sum))
+      Info[[i]] = cbind(serie_historica_normalizada[,i],serie_historica_normalizada[,i-1],serie_historica_normalizada[,12],apply(serie_historica_normalizada[,(i:12)],1,sum))
   }
   return(Info)
 }
@@ -38,9 +38,7 @@ autocovariancia <- function(info){
   for(i in 1:11){
     ACF_S[[i]]= acf(info[[i]],lag.max = 1,type = "covariance", plot = FALSE)
     ACF_S[[i]]= ACF_S[[i]]$acf
-    print(ACF_S[[i]])
   }
-  #print(ACF_S)
   return(ACF_S)
 }
 
@@ -192,11 +190,10 @@ desagregacao_parametrica_ano <- function(ano,Zinicial,A,Bt,C){
   ERRO = matrix(ERRO,ncol=2)
   
   for(i in 1:11){
-    CONT_ERRO = CONT_ERRO+1
     if(i==1){
       #Pegando a linha correspondente a i
       erro = ERRO[i,]
-      Y = A[[i]]%*%ano+Bt[[i]]%*%(erro)+C[[i]]%*%Zinicial #Y = A%*%serie_sint[k]+Bt%*%erro+C%*%Meses
+      Y = A[[i]]%*%ano+Bt[[i]]%*%(erro)+C[[i]]%*%Zinicial 
       Meses[i] = Y[1,1]
       Resto[i] = Y[2,1]
       
@@ -223,11 +220,20 @@ ajuste_proporcional <- function(anual,mensal){
 }
 
 # Funcao de desagregacao_parametrica : Realiaza a desagregacao da serie_sintetica
-# Pametro: a serie sintetica normalizada, o parametro historico calculado pela funcao desag_param_info
+# Parametro: a serie sintetica e a serie historica.
 # Retorno: a serie desagregada
-# OBS: Essa é a funcao desag_param -mult modificada com o calculo de A, Bt, C feitos fora da funcao desag_param
 
-desagregacao_parametrica <- function(serie_sintetica_normalizada,serie_historica_normalizada,info){
+
+desagregacao_parametrica <- function(serie_sintetica,serie_historica){
+  
+  # Normalizando a serie_historica
+  serie_historica_normalizada <- apply(log(serie_historica),2, function(x) (x-mean(x)))
+  
+  # Normalizando a série_sintetica
+  serie_sintetica_normalizada <- apply(log(serie_sintetica), 2, function(x) (x-mean(x)))
+  
+  # Calculando os parametros historicos
+  info <- parametros_historicos(serie_historica_normalizada)
   
   #nAnos: numero de anos da serie_sintetica
   nAnos = nrow(serie_sintetica_normalizada)
@@ -251,18 +257,29 @@ desagregacao_parametrica <- function(serie_sintetica_normalizada,serie_historica
   #Zinicial = a vazão de dezembro do ano 1 da serie historica normalizada
   Zinicial = serie_historica_normalizada[1,12]
   
+  # Desagregando cada ano da serie sintetica normalizada
+  print('Desagregando a serie')
   for(i in inicio:fim){
     
     # Desagregando o ano i da serie_sintetica_normalizada
     serie_desagregada_normalizada[i,] = desagregacao_parametrica_ano(serie_sintetica_normalizada[i,1], Zinicial,A,Bt,C)
     
     # Zinicial é o valor da vazao calculada pela desagregacao do mes de dezembro. Esse valor será utilizado na desagregacao do ano  i + 1
-    # Definicao de Z do artigo: contem a ultima temporada do ano anterior. Esse valor só não segue essa formula para o i = 1 
-    
     Zinicial = serie_desagregada_normalizada[i,12]
       
   }
-  return(serie_desagregada_normalizada)
+  
+  #Desnormalizando a serie desagregada
+  media_historica = apply(log(serie_historica),2,mean)
+  serie_desagregada = apply(serie_desagregada_normalizada,1,function(x)(x + media_historica))
+  serie_desagregada = t(exp(serie_desagregada))
+  
+  # Fazendo o ajuste proporcional para manter a aditividade
+  for(i in seq_along(1:10000)){
+    serie_desagregada[i,] <- ajuste_proporcional(serie_sintetica[i,],serie_desagregada[i,])
+  }
+  
+  return(serie_desagregada)
 }
 
 

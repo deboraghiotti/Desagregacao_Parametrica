@@ -12,32 +12,10 @@ input_2 <- tk_choose.files()#Arquivo de vazao sintetica
 entrada <- data.frame(read.csv(input_1, sep=";", dec=",")) #Leitura de dados historicos mensais
 serie_sintetica <- data.frame(read.csv(input_2, header = F,sep=";", dec=",")) #Leitura de serie sintetica gerada para essa mesma serie
 
-media_serie_sintetica = apply(serie_sintetica,2,mean)
-serie_sintetica_normalizada <- apply(log(serie_sintetica), 2, function(x) (x-mean(x)))
+serie_historica <- div_mensais(entrada)
 
-SeriesDadosHist <- div_mensais(entrada)
-SeriesDadosHist_normalizada <- apply(log(SeriesDadosHist),2, function(x) (x-mean(x)))
+serie_desagregada <- desagregacao_parametrica(serie_sintetica,serie_historica)
 
-Parametro_Hist <- parametros_historicos(SeriesDadosHist_normalizada)
-
-# A Funcao desagregacao_parametrica_mult substitui a funcao desag_param_mult
-# Nela, os parametros A, B, C são calculados externamente a funcao desag_param.
-# A funcao parametro_A calcula o parametro A
-# A funcao parametro_Bt calcula o parametro B
-# A funcao parametro_C calcula o parametro C
-# a funcao autocovariancia calcula a autocovariancia do Parametro_Hist que é necessario para calcular os parametros A.B e C
-
-DesagregadoP <- desagregacao_parametrica(serie_sintetica_normalizada,SeriesDadosHist_normalizada,Parametro_Hist)
-media = apply(log(SeriesDadosHist),2,mean)
-# mediaSS = apply(log(serie_sintetica),2,mean)
-
-# Serie Desagregada Desnormalizada
-Desagregado = apply(DesagregadoP,1,function(x)(x + media))
-Desagregado = t(exp(Desagregado))
-
-for(i in seq_along(1:10000)){
-  Desagregado[i,] <- ajuste_proporcional(serie_sintetica[i,],Desagregado[i,])
-}
 
 
 
