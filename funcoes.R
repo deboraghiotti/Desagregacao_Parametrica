@@ -14,10 +14,10 @@ div_mensais<-function(sH)
   return(serie_hist)
 }
 
-# Funcao desag_param_info: calcula dos parametros historicos necessarios para a desagregacao parametrica
+# Funcao parametros_historicos: calcula dos parametros historicos necessarios para a desagregacao parametrica
 # Parametro: a serie historica normalizada 
 # Retorno: parametros historicos para a desagregacao
-desag_param_info<-function(SeriesDadosHist_normalizada){
+parametros_historicos<-function(SeriesDadosHist_normalizada){
   Info=list()
   for (i in 1:11){
     if (i==1)
@@ -31,7 +31,7 @@ desag_param_info<-function(SeriesDadosHist_normalizada){
 }
 
 # Funcao autocovariancia 
-# Parametro: os parametros historicos calculados pela funcao desag_param_info
+# Parametro: os parametros historicos calculados pela funcao parametros_historicos
 # Retorno: a autocovariancia desses parametros, necessaria para realizar a desagregacao (de janeiro a novembro)
 autocovariancia <- function(info){
   ACF_S = list()
@@ -222,12 +222,12 @@ ajuste_proporcional <- function(anual,mensal){
   
 }
 
-# Funcao de desagregacao_parametrica_mult : Realiaza a desagregacao da serie_sintetica
+# Funcao de desagregacao_parametrica : Realiaza a desagregacao da serie_sintetica
 # Pametro: a serie sintetica normalizada, o parametro historico calculado pela funcao desag_param_info
 # Retorno: a serie desagregada
 # OBS: Essa é a funcao desag_param -mult modificada com o calculo de A, Bt, C feitos fora da funcao desag_param
 
-desagregacao_parametrica_mult <- function(serie_sintetica_normalizada,serie_historica_normalizada,info){
+desagregacao_parametrica <- function(serie_sintetica_normalizada,serie_historica_normalizada,info){
   
   #nAnos: numero de anos da serie_sintetica
   nAnos = nrow(serie_sintetica_normalizada)
